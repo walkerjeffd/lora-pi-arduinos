@@ -3,8 +3,8 @@ import json
 import argparse
 import serial
 
-host = 'alewife.local'
-database = 'rpi'
+host = 'trout.local'
+database = 'lora'
 
 parser = argparse.ArgumentParser(description='Read from serial and echo message')
 parser.add_argument('-d', '--device', help='path to serial device', required=True)
@@ -36,7 +36,7 @@ def send(measurement, tags, fields):
 
 while True:
   msg = ser.readline().strip()
-  
+
   msg_json = json.loads(msg)
   # print "msg_json = %s" % (msg_json)
 

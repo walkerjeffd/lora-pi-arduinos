@@ -36,8 +36,7 @@ RH_RF95 rf95(RFM95_CS, RFM95_INT);
 // Blinky on receipt
 #define LED 13
 
-void setup() 
-{
+void setup() {
   
   pinMode(LED, OUTPUT);     
   pinMode(RFM95_RST, OUTPUT);
@@ -45,8 +44,7 @@ void setup()
 
 //  while (!Serial);
   Serial.begin(9600);
-  Serial.println("setup()");
-  delay(100);
+  while (!Serial) ;
 
   Serial.println("Feather LoRa RX Test!");
   
@@ -74,11 +72,13 @@ void setup()
   // The default transmitter power is 13dBm, using PA_BOOST.
   // If you are using RFM95/96/97/98 modules which uses the PA_BOOST transmitter pin, then 
   // you can set transmitter powers from 5 to 23 dBm:
+
   rf95.setTxPower(23, false);
 }
 
-void loop()
-{
+
+
+void loop() {
   digitalWrite(LED, HIGH);
   if (rf95.available())
   {

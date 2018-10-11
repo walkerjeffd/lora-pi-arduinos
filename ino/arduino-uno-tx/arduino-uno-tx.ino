@@ -3,7 +3,10 @@
 
 #include <SPI.h>
 #include <RH_RF95.h>
+#include <ArduinoJson.h>
 #include "DHT.h"
+
+#define DEVID 0
 
 #define RFM95_CS 10
 #define RFM95_RST 9
@@ -29,6 +32,9 @@ RH_RF95 rf95(RFM95_CS, RFM95_INT);
 
 DHT dht(DHTPIN, DHTTYPE);
 
+// Blinky on send
+#define LED 13
+
 void setup() {
   pinMode(RFM95_RST, OUTPUT);
   digitalWrite(RFM95_RST, HIGH);
@@ -36,7 +42,6 @@ void setup() {
   while (!Serial);
   Serial.begin(9600); 
   delay(100);
-  Serial.println("Setting Up...");
 
 
   // manual reset
@@ -69,57 +74,48 @@ void setup() {
 }
 
 void loop() {
-  // Wait a few seconds between measurements.
+  digitalWrite(LED, HIGH);
   
-
   // Reading temperature or humidity takes about 250 milliseconds!
   // Sensor readings may also be up to 2 seconds 'old' (its a very slow sensor)
   float h = dht.readHumidity();
   // Read temperature as Celsius
-  float t = dht.readTemperature();
+  // float t = dht.readTemperature();
   // Read temperature as Fahrenheit
   float f = dht.readTemperature(true);
-
+  // Compute heat index
   float hi = dht.computeHeatIndex(f, h);
-  
-//  // Check if any reads failed and exit early (to try again).
-//  if (isnan(h) || isnan(t) || isnan(f)) {
-//    Serial.println("Failed to read from DHT sensor!");
-//    return;
-//  }
 
-//  Serial.println("Sending to rf95_server");
-  // Send a message to rf95_server
-  
-//  char radiopacket[20] = "Hello World #      ";
-  char radiopacket[20] = "                   ";
-  itoa((int)h, radiopacket, 10);
-//  itoa((int)f, radiopacket+10, 10);
-  
-  Serial.print("Sending "); Serial.println(radiopacket);
-  radiopacket[19] = 0;
-  
-  Serial.println("Sending..."); delay(10);
-  rf95.send((uint8_t *)radiopacket, 20);
+  StaticJsonBuffer<200> jsonBuffer;
+  JsonObject& root = jsonBuffer.createObject();
+  root["id"] = DEVID;
+  root["millis"] = millis();
+  JsonObject& data = root.createNestedObject("data");
+  data["h"] = double_with_n_digits(h, 1);
+  data["f"] = double_with_n_digits(f, 2);
+  data["hi"] = double_with_n_digits(hi, 3);
 
+  char buf[251];
+  root.printTo(buf, sizeof(buf));
+  buf[sizeof(buf)-1] = 0;
+ 
+  Serial.print("Sending "); Serial.println(buf);
+  rf95.send((uint8_t *)buf, sizeof(buf));
+ 
   Serial.println("Waiting for packet to complete..."); delay(10);
   rf95.waitPacketSent();
-
-  delay(1000);
-
-  // Compute heat index
-  // Must send in temp in Fahrenheit!
-//  float hi = dht.computeHeatIndex(f, h);
-
+ 
   Serial.print("Humidity: "); 
   Serial.print(h);
   Serial.print(" %\t");
   Serial.print("Temperature: "); 
-  Serial.print(t);
-  Serial.print(" *C ");
   Serial.print(f);
   Serial.print(" *F\t");
   Serial.print("Heat index: ");
   Serial.print(hi);
   Serial.println(" *F");
+
+  delay(1000);
+  digitalWrite(LED, LOW);
+  delay(1000);
 }
