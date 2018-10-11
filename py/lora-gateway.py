@@ -30,7 +30,8 @@ def send(measurement, tags, fields):
 
   print "Uploading: %s" % payload
 
-  success = client.write_points(payload, retention_policy="one_hour")
+  # success = client.write_points(payload, retention_policy="one_hour")
+  success = client.write_points(payload)
   if not success:
     print('Upload failed...')
 

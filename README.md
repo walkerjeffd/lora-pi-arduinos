@@ -166,6 +166,13 @@ Output should look like:
 
 ### lora-gateway.py
 
+Install dependencies under `root`
+
+```
+sudo su root
+pip install influxdb
+```
+
 The `py/lora-gateway.py` script reads messages from the USB serial port, and automatically pushes those messages to a remote influxdb server. This script takes the same arguments as `read-serial.py`
 
 ```
