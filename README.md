@@ -49,10 +49,11 @@ Three CQs are then created and stored in varying retention policies:
 CREATE RETENTION POLICY "1_day" ON "lora" DURATION 1d REPLICATION 1 DEFAULT
 CREATE RETENTION POLICY "30_days" ON "lora" DURATION 30d REPLICATION 1
 CREATE RETENTION POLICY "1_year" ON "lora" DURATION 52w REPLICATION 1
+CREATE RETENTION POLICY "inf" ON "lora" DURATION INF REPLICATION 1
 
 CREATE CONTINUOUS QUERY "cq_1m" ON "lora" BEGIN SELECT mean("f") AS "f_mean", mean("h") AS "h_mean", mean("hi") AS "hi_mean" INTO "30_days"."dht_1m" FROM "dht" GROUP BY time(1m) END
 CREATE CONTINUOUS QUERY "cq_15m" ON "lora" BEGIN SELECT mean("f") AS "f_mean", min("f") AS "f_min", max("f") AS "f_max", mean("h") AS "h_mean", min("h") AS "h_min", max("h") AS "h_max", mean("hi") AS "hi_mean", min("hi") AS "hi_min", max("hi") AS "hi_max" INTO "1_year"."dht_15m" FROM "dht" GROUP BY time(15m) END
-CREATE CONTINUOUS QUERY "cq_1h" ON "lora" BEGIN SELECT mean("f") AS "f_mean", min("f") AS "f_min", max("f") AS "f_max", mean("h") AS "h_mean", min("h") AS "h_min", max("h") AS "h_max", mean("hi") AS "hi_mean", min("hi") AS "hi_min", max("hi") AS "hi_max" INTO "dht_1h" FROM "dht" GROUP BY time(1h) END
+CREATE CONTINUOUS QUERY "cq_1h" ON "lora" BEGIN SELECT mean("f") AS "f_mean", min("f") AS "f_min", max("f") AS "f_max", mean("h") AS "h_mean", min("h") AS "h_min", max("h") AS "h_max", mean("hi") AS "hi_mean", min("hi") AS "hi_min", max("hi") AS "hi_max" INTO "inf"."dht_1h" FROM "dht" GROUP BY time(1h) END
 ```
 
 Inspect database
@@ -71,7 +72,7 @@ use lora
 select * from "1_day".dht
 select * from "30_days".dht_1m
 select * from "1_year".dht_15m
-select * from dht_1h
+select * from "inf".dht_1h
 ```
 
 ## Set Up Raspberry Pi
