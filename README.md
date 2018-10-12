@@ -17,8 +17,7 @@ Any number of sensor nodes can be set up using Arduino Uno with a LoRa chip.
 3. Connect Arduino Feather M0 to Raspberry Pi
 4. Run `py/read-serial.py` on Raspberry Pi to test transmission
 5. Run `py/lora-gateway.py` on Raspberry Pi to test InfluxDB storage
-6. Set up `supervisord` by copying content of `py/supervisor/lora-gateway.template.conf` to `/etc/supervisor/conf.d/lora-gateway.conf` and setting `directory` value
-7. Update supervisor (`sudo supervisorctl update`) and then check status (`sudo supervisorctl status`) and stderr logs in `/var/log/supervisor/lora-gateway-stderr.log`
+7. Add `lora-gateway` to supervisor
 8. Configure Grafana to plot data from InfluxDB
 
 ## Set Up Raspberry Pi
@@ -203,6 +202,41 @@ $ influx
 # 1539289822487912570 71.96 51.7 76.827 0  690376
 # 1539289825289112963 71.96 51.7 76.827 0  693061
 ```
+
+## Supervisor Process Manager
+
+The `lora-gateway.py` script can be automatically (re)started on the Raspberry Pi using the `supervisord` daemon.
+
+### Configuration File
+
+A template configuration file is provided in `py/supervisor/lora-gateway.template.conf`.
+
+Create a new supervisor configuration file and copy the contents from the template.
+
+```txt
+sudo nano /etc/supervisor/conf.d/lora-gateway.conf
+<paste contents of py/supervisor/lora-gateway.template.conf>
+<edit 'directory' and other fields as needed>
+```
+
+After creating the configuration file, update `supervisor` to add the `lora-gateway` program.
+
+```
+sudo supervisor update
+```
+
+### Log Files
+
+Only stderr logging is enabled, and will be stored in `/var/log/supervisor/lora-gateway-stderr.log`.
+
+The stdout stream can also be logged by modifying the configuration file.
+
+### Manage Process
+
+Update: `sudo supervisorctl update`
+Status: `sudo supervisorctl status lora-gateway`
+Stop: `sudo supervisorctl stop lora-gateway`
+Start: `sudo supervisorctl start lora-gateway`
 
 ## Grafana
 
