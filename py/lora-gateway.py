@@ -5,6 +5,7 @@ import serial
 
 host = 'trout.local'
 database = 'lora'
+measurement = 'dht'
 
 parser = argparse.ArgumentParser(description='Read from serial and echo message')
 parser.add_argument('-d', '--device', help='path to serial device', required=True)
@@ -23,9 +24,9 @@ ser = serial.Serial(DEVICE, RATE)
 
 def send(measurement, tags, fields):
   payload = [{
-    "measurement": measurement,
-    "tags": tags,
-    "fields": fields
+    'measurement': measurement,
+    'tags': tags,
+    'fields': fields
   }]
 
   # print "Uploading: %s" % payload
@@ -39,9 +40,8 @@ while True:
 
   msg_json = json.loads(msg)
 
-  measurement = "lora"
   id = msg_json[u'id']
-  tags = {"id": id}
+  tags = {'id': id}
   fields = msg_json[u'data']
 
   send(measurement, tags, fields)

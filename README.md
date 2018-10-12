@@ -39,11 +39,6 @@ influx -precision rfc3339
 
 A retention policy (RP) determines how long data are kept within InfluxDB. A continuous query (CQ) automatically downsamples a time series to a lower frequency, and can be used with different RPs. The two constructs can be mixed and matched to store data at varying frequencies for varying durations.
 
-For the raw data, which is transmitted every 2 seconds or so, a 1-day retention policy will be applied by setting it as the default.
-
-```
-```
-
 Three CQs are then created and stored in varying retention policies:
 
 - 5 min stored for 30 days
@@ -55,15 +50,16 @@ CREATE RETENTION POLICY "1_day" ON "lora" DURATION 1d REPLICATION 1 DEFAULT
 CREATE RETENTION POLICY "30_days" ON "lora" DURATION 30d REPLICATION 1
 CREATE RETENTION POLICY "1_year" ON "lora" DURATION 52w REPLICATION 1
 
+CREATE CONTINUOUS QUERY "cq_1m" ON "lora" BEGIN SELECT mean("f") AS "f_mean", mean("h") AS "h_mean", mean("hi") AS "hi_mean" INTO "30_days"."dht_1m" FROM "dht" GROUP BY time(1m) END
+CREATE CONTINUOUS QUERY "cq_15m" ON "lora" BEGIN SELECT mean("f") AS "f_mean", min("f") AS "f_min", max("f") AS "f_max", mean("h") AS "h_mean", min("h") AS "h_min", max("h") AS "h_max", mean("hi") AS "hi_mean", min("hi") AS "hi_min", max("hi") AS "hi_max" INTO "1_year"."dht_15m" FROM "dht" GROUP BY time(15m) END
+CREATE CONTINUOUS QUERY "cq_1h" ON "lora" BEGIN SELECT mean("f") AS "f_mean", min("f") AS "f_min", max("f") AS "f_max", mean("h") AS "h_mean", min("h") AS "h_min", max("h") AS "h_max", mean("hi") AS "hi_mean", min("hi") AS "hi_min", max("hi") AS "hi_max" INTO "dht_1h" FROM "dht" GROUP BY time(1m) END
+```
+
+```
 SHOW RETENTION POLICIES
-# DROP RETENTION POLICY "1_year" ON "lora"
-
-CREATE CONTINUOUS QUERY "cq_1m" ON "lora" BEGIN SELECT mean("f") AS "f_mean", mean("h") AS "h_mean", mean("hi") AS "hi_mean" INTO "30_days"."lora_1m" FROM "lora" GROUP BY time(1m) END
-CREATE CONTINUOUS QUERY "cq_15m" ON "lora" BEGIN SELECT mean("f") AS "f_mean", min("f") AS "f_min", max("f") AS "f_max", mean("h") AS "h_mean", min("h") AS "h_min", max("h") AS "h_max", mean("hi") AS "hi_mean", min("hi") AS "hi_min", max("hi") AS "hi_max" INTO "30_days"."lora_15m" FROM "lora" GROUP BY time(15m) END
-CREATE CONTINUOUS QUERY "cq_1h" ON "lora" BEGIN SELECT mean("f") AS "f_mean", min("f") AS "f_min", max("f") AS "f_max", mean("h") AS "h_mean", min("h") AS "h_min", max("h") AS "h_max", mean("hi") AS "hi_mean", min("hi") AS "hi_min", max("hi") AS "hi_max" INTO "lora_1h" FROM "lora" GROUP BY time(1m) END
-
 SHOW CONTINUOUS QUERIES
-# DROP CONTINUOUS QUERY "cq_1h" ON "lora"
+SHOW MEASUREMENTS
+SHOW SERIES
 ```
 
 ## Set Up Raspberry Pi
