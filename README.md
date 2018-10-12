@@ -235,9 +235,8 @@ Check that data are uploaded on InfluxDB server.
 ```
 $ influx
 > USE lora
-> select * from lora;
-> select * from lora;
-# name: lora
+> select * from dht;
+# name: dht
 # time                f     h    hi     id
 # ----                -     -    --     --
 # 1539289787555996127 71.96 51.8 76.821 0
@@ -287,10 +286,12 @@ The stdout stream can also be logged by modifying the configuration file.
 
 ### Manage Process
 
-Update: `sudo supervisorctl update`
-Status: `sudo supervisorctl status lora-gateway`
-Stop: `sudo supervisorctl stop lora-gateway`
-Start: `sudo supervisorctl start lora-gateway`
+```
+sudo supervisorctl update
+sudo supervisorctl status lora-gateway
+sudo supervisorctl stop lora-gateway
+sudo supervisorctl start lora-gateway
+```
 
 ## Grafana
 
