@@ -28,9 +28,8 @@ def send(measurement, tags, fields):
     "fields": fields
   }]
 
-  print "Uploading: %s" % payload
+  # print "Uploading: %s" % payload
 
-  # success = client.write_points(payload, retention_policy="one_hour")
   success = client.write_points(payload)
   if not success:
     print('Upload failed...')
@@ -39,12 +38,10 @@ while True:
   msg = ser.readline().strip()
 
   msg_json = json.loads(msg)
-  # print "msg_json = %s" % (msg_json)
 
   measurement = "lora"
   id = msg_json[u'id']
-  millis = msg_json[u'millis']
-  tags = {"id": id, "millis": millis}
+  tags = {"id": id}
   fields = msg_json[u'data']
-  # print (measurement, tags, fields)
+
   send(measurement, tags, fields)

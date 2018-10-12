@@ -20,6 +20,52 @@ Any number of sensor nodes can be set up using Arduino Uno with a LoRa chip.
 7. Add `lora-gateway` to supervisor
 8. Configure Grafana to plot data from InfluxDB
 
+## InfluxDB
+
+Download and install InfluxDB (v1.6) according to [instructions](https://docs.influxdata.com/influxdb/v1.6/introduction/installation/).
+
+Create new database called `lora`.
+
+```
+influx -precision rfc3339
+> CREATE DATABASE lora
+> USE lora
+> SHOW DATABASES
+```
+
+### Retention Policies and Continuous Queries
+
+[Downsampling and Retention](https://docs.influxdata.com/influxdb/v1.6/guides/downsampling_and_retention/)
+
+A retention policy (RP) determines how long data are kept within InfluxDB. A continuous query (CQ) automatically downsamples a time series to a lower frequency, and can be used with different RPs. The two constructs can be mixed and matched to store data at varying frequencies for varying durations.
+
+For the raw data, which is transmitted every 2 seconds or so, a 1-day retention policy will be applied by setting it as the default.
+
+```
+```
+
+Three CQs are then created and stored in varying retention policies:
+
+- 5 min stored for 30 days
+- 15 minutes stored for 1 year
+- 1 hour stored forever
+
+```
+CREATE RETENTION POLICY "1_day" ON "lora" DURATION 1d REPLICATION 1 DEFAULT
+CREATE RETENTION POLICY "30_days" ON "lora" DURATION 30d REPLICATION 1
+CREATE RETENTION POLICY "1_year" ON "lora" DURATION 52w REPLICATION 1
+
+SHOW RETENTION POLICIES
+# DROP RETENTION POLICY "1_year" ON "lora"
+
+CREATE CONTINUOUS QUERY "cq_1m" ON "lora" BEGIN SELECT mean("f") AS "f_mean", mean("h") AS "h_mean", mean("hi") AS "hi_mean" INTO "30_days"."lora_1m" FROM "lora" GROUP BY time(1m) END
+CREATE CONTINUOUS QUERY "cq_15m" ON "lora" BEGIN SELECT mean("f") AS "f_mean", min("f") AS "f_min", max("f") AS "f_max", mean("h") AS "h_mean", min("h") AS "h_min", max("h") AS "h_max", mean("hi") AS "hi_mean", min("hi") AS "hi_min", max("hi") AS "hi_max" INTO "30_days"."lora_15m" FROM "lora" GROUP BY time(15m) END
+CREATE CONTINUOUS QUERY "cq_1h" ON "lora" BEGIN SELECT mean("f") AS "f_mean", min("f") AS "f_min", max("f") AS "f_max", mean("h") AS "h_mean", min("h") AS "h_min", max("h") AS "h_max", mean("hi") AS "hi_mean", min("hi") AS "hi_min", max("hi") AS "hi_max" INTO "lora_1h" FROM "lora" GROUP BY time(1m) END
+
+SHOW CONTINUOUS QUERIES
+# DROP CONTINUOUS QUERY "cq_1h" ON "lora"
+```
+
 ## Set Up Raspberry Pi
 
 ### Operating System
