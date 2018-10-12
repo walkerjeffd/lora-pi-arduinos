@@ -52,14 +52,26 @@ CREATE RETENTION POLICY "1_year" ON "lora" DURATION 52w REPLICATION 1
 
 CREATE CONTINUOUS QUERY "cq_1m" ON "lora" BEGIN SELECT mean("f") AS "f_mean", mean("h") AS "h_mean", mean("hi") AS "hi_mean" INTO "30_days"."dht_1m" FROM "dht" GROUP BY time(1m) END
 CREATE CONTINUOUS QUERY "cq_15m" ON "lora" BEGIN SELECT mean("f") AS "f_mean", min("f") AS "f_min", max("f") AS "f_max", mean("h") AS "h_mean", min("h") AS "h_min", max("h") AS "h_max", mean("hi") AS "hi_mean", min("hi") AS "hi_min", max("hi") AS "hi_max" INTO "1_year"."dht_15m" FROM "dht" GROUP BY time(15m) END
-CREATE CONTINUOUS QUERY "cq_1h" ON "lora" BEGIN SELECT mean("f") AS "f_mean", min("f") AS "f_min", max("f") AS "f_max", mean("h") AS "h_mean", min("h") AS "h_min", max("h") AS "h_max", mean("hi") AS "hi_mean", min("hi") AS "hi_min", max("hi") AS "hi_max" INTO "dht_1h" FROM "dht" GROUP BY time(1m) END
+CREATE CONTINUOUS QUERY "cq_1h" ON "lora" BEGIN SELECT mean("f") AS "f_mean", min("f") AS "f_min", max("f") AS "f_max", mean("h") AS "h_mean", min("h") AS "h_min", max("h") AS "h_max", mean("hi") AS "hi_mean", min("hi") AS "hi_min", max("hi") AS "hi_max" INTO "dht_1h" FROM "dht" GROUP BY time(1h) END
 ```
+
+Inspect database
 
 ```
 SHOW RETENTION POLICIES
 SHOW CONTINUOUS QUERIES
 SHOW MEASUREMENTS
 SHOW SERIES
+```
+
+Query data. Note that measurements (`dht`, `dht_1m`, `dht_15m`, `dht_1h` need to prefixed with retention policy if not default).
+
+```
+use lora
+select * from "1_day".dht
+select * from "30_days".dht_1m
+select * from "1_year".dht_15m
+select * from dht_1h
 ```
 
 ## Set Up Raspberry Pi
@@ -164,7 +176,7 @@ Open arduino serial log.
 
 Should send `{id, millis, data: {h,f,hi}}` in JSON
 
-```
+```txt
 Waiting for packet to complete...
 Humidity: 51.90 % Temperature: 71.60 *F Heat index: 76.78 *F
 Sending {"id":2,"millis":8547,"data":{"h":51.9,"f":71.60,"hi":76.785}}
@@ -177,7 +189,7 @@ Sending {"id":2,"millis":13914,"data":{"h":51.9,"f":71.60,"hi":76.785}}
 Waiting for packet to complete...
 ```
 
-Output on raspberry pi should now show (from `sudo cat /dev/ttyACM0`):
+Output on raspberry pi should now show (from `read-serial.py`):
 
 ```json
 {"id":2,"millis":80999,"data":{"h":52.0,"f":71.60,"hi":76.779}}
@@ -226,23 +238,23 @@ $ influx
 > select * from lora;
 > select * from lora;
 # name: lora
-# time                f     h    hi     id millis
-# ----                -     -    --     -- ------
-# 1539289787555996127 71.96 51.8 76.821 0  655478
-# 1539289790292909668 71.96 51.8 76.821 0  658163
-# 1539289792895148684 71.96 51.8 76.821 0  660848
-# 1539289795741793109 71.78 51.8 76.804 0  663531
-# 1539289798295975899 71.96 51.8 76.821 0  666216
-# 1539289801092241760 71.78 51.8 76.804 0  668901
-# 1539289803729000326 71.96 51.8 76.821 0  671586
-# 1539289806493233282 71.78 51.8 76.804 0  674269
-# 1539289809092750704 71.96 51.8 76.821 0  676954
-# 1539289811890869965 71.96 51.8 76.821 0  679639
-# 1539289814489342027 71.96 51.7 76.827 0  682323
-# 1539289817451912271 71.96 51.7 76.827 0  685006
-# 1539289819887961413 71.96 51.7 76.827 0  687691
-# 1539289822487912570 71.96 51.7 76.827 0  690376
-# 1539289825289112963 71.96 51.7 76.827 0  693061
+# time                f     h    hi     id
+# ----                -     -    --     --
+# 1539289787555996127 71.96 51.8 76.821 0
+# 1539289790292909668 71.96 51.8 76.821 0
+# 1539289792895148684 71.96 51.8 76.821 0
+# 1539289795741793109 71.78 51.8 76.804 0
+# 1539289798295975899 71.96 51.8 76.821 0
+# 1539289801092241760 71.78 51.8 76.804 0
+# 1539289803729000326 71.96 51.8 76.821 0
+# 1539289806493233282 71.78 51.8 76.804 0
+# 1539289809092750704 71.96 51.8 76.821 0
+# 1539289811890869965 71.96 51.8 76.821 0
+# 1539289814489342027 71.96 51.7 76.827 0
+# 1539289817451912271 71.96 51.7 76.827 0
+# 1539289819887961413 71.96 51.7 76.827 0
+# 1539289822487912570 71.96 51.7 76.827 0
+# 1539289825289112963 71.96 51.7 76.827 0
 ```
 
 ## Supervisor Process Manager
